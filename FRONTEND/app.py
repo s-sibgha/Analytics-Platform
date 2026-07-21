@@ -29,6 +29,15 @@ This module owns:
   • Notification Center payload builder
   • The routing mesh (st.navigation, position="hidden")
 """
+import sys
+from pathlib import Path
+
+#root directory (parent of FRONTEND) to Python's search path
+root_dir = Path(__file__).resolve().parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.append(str(root_dir))
+
+
 from __future__ import annotations
 
 import hashlib
