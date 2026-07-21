@@ -128,7 +128,7 @@ def _stage_uploaded_files(uploaded_files: List[Any]) -> None:
     """Stages uploaded files into session_state, enforcing a max staged count. Never raises."""
     try:
         store: Dict[str, bytes] = st.session_state.setdefault("uploaded_files_store", {})
-       for uploaded_file in uploaded_files:
+        for uploaded_file in uploaded_files:
             try:
                 file_bytes = uploaded_file.getvalue()
             except Exception:  # noqa: BLE001
