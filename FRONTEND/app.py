@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 app.py — KESCO Universal Utility Analytics Platform
 Main System Bootstrapper & Routing Mesh (FILE 1 / 6)
@@ -38,7 +39,7 @@ if str(root_dir) not in sys.path:
     sys.path.append(str(root_dir))
 
 
-from __future__ import annotations
+
 
 import hashlib
 import io
