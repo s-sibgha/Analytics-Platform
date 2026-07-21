@@ -128,11 +128,18 @@ def _stage_uploaded_files(uploaded_files: List[Any]) -> None:
     """Stages uploaded files into session_state, enforcing a max staged count. Never raises."""
     try:
         store: Dict[str, bytes] = st.session_state.setdefault("uploaded_files_store", {})
-        for uploaded_file in uploaded_files:
+       for uploaded_file in uploaded_files:
             try:
-                store[uploaded_file.name] = uploaded_file.getvalue()
+                file_bytes = uploaded_file.getvalue()
             except Exception:  # noqa: BLE001
+                # Covers ClientDisconnect / interrupted browser upload mid-transfer.
                 continue
+            if not file_bytes:
+                # Zero-byte upload (dropped connection, empty file) — skip
+                # rather than staging something that will fail downstream
+                # with an unhelpful DuckDB/pandas parse error.
+                continue
+            store[uploaded_file.name] = file_bytes
         if len(store) > _MAX_STAGED_FILES:
             overflow = len(store) - _MAX_STAGED_FILES
             for stale_key in list(store.keys())[:overflow]:
