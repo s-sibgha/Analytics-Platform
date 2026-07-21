@@ -1,0 +1,6 @@
+[server]
+enableStaticServing = false
+folderWatchBlacklist = ["data", "temp"]
+
+[client]
+showSidebarNavigation = false

@@ -1,0 +1,119 @@
+2026-07-08 12:43:19 | ERROR    | kesco_platform | incident_id=585111bf | component=app.main.render_sidebar | exception_type=ImportError | message=cannot import name 'render_sidebar_section_header' from 'core.themes' (D:\KESCO_ANALYTICS_PLATFORM\core\themes.py) | context={}
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 1181, in main
+    render_sidebar()
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\components\sidebar.py", line 427, in render
+    from core.themes import render_sidebar_section_header  # NEW import, local to avoid circular churn
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: cannot import name 'render_sidebar_section_header' from 'core.themes' (D:\KESCO_ANALYTICS_PLATFORM\core\themes.py)
+
+2026-07-15 12:41:45 | ERROR    | kesco_platform | incident_id=fc1494ff | component=app.main.render_sidebar | exception_type=StreamlitAPIException | message=The image passed to st.logo is invalid - See [documentation](https://docs.streamlit.io/develop/api-reference/media/st.logo) for more information on valid types | context={}
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\elements\lib\image_utils.py", line 290, in image_to_url
+    with open(image, "rb") as f:
+         ^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'kescologo.webp'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\memory_media_file_storage.py", line 205, in _read_file
+    with open(filename, "rb") as f:
+         ^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'kescologo.webp'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\commands\logo.py", line 209, in logo
+    image_type, image_value = _process_logo_image(image, "logo")
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\commands\logo.py", line 75, in _process_logo_image
+    image_url = image_to_url(
+                ^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\elements\lib\image_utils.py", line 302, in image_to_url
+    url = runtime.get_instance().media_file_mgr.add(image, mimetype, image_id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\media_file_manager.py", line 277, in add
+    file_id = self._storage.load_and_get_id(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\memory_media_file_storage.py", line 155, in load_and_get_id
+    self._read_file(path_or_data)
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\memory_media_file_storage.py", line 208, in _read_file
+    raise MediaFileStorageError(f"Error opening '{filename}'") from ex
+streamlit.runtime.media_file_storage.MediaFileStorageError: Error opening 'kescologo.webp'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 1295, in main
+    render_sidebar()
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\components\sidebar.py", line 337, in render
+    st.logo(image= "kescologo.webp",
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\metrics_util.py", line 568, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\commands\logo.py", line 213, in logo
+    raise StreamlitAPIException(_invalid_logo_text("image")) from ex
+streamlit.errors.StreamlitAPIException: The image passed to st.logo is invalid - See [documentation](https://docs.streamlit.io/develop/api-reference/media/st.logo) for more information on valid types
+
+2026-07-15 12:57:05 | ERROR    | kesco_platform | incident_id=3d6fee43 | component=app.main.render_sidebar | exception_type=TypeError | message=ImageMixin.image() got an unexpected keyword argument 'height' | context={}
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 1295, in main
+    render_sidebar()
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\components\sidebar.py", line 337, in render
+    st.image("D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\components\kescologo.jpg",width = 250, height=100, link= "https://kesco.org.in")
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\metrics_util.py", line 568, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ImageMixin.image() got an unexpected keyword argument 'height'
+
+2026-07-20 19:24:37 | ERROR    | kesco_platform | incident_id=4fe8c055 | component=app.convert_upload_to_parquet | exception_type=ArrowTypeError | message=("Expected bytes, got a 'int' object", 'Conversion failed for column REMARKS with type object') | context={'filename': "KESCO RE-OPEN DATA 19-JUN'26.xlsx"}
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 288, in convert_upload_to_parquet
+    pq.write_table(pa.Table.from_pandas(df_excel, preserve_index=False), parquet_path, compression="SNAPPY")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pyarrow/table.pxi", line 4768, in pyarrow.lib.Table.from_pandas
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\pyarrow\pandas_compat.py", line 664, in dataframe_to_arrays
+    arrays[i] = maybe_fut.result()
+                ^^^^^^^^^^^^^^^^^^
+  File "D:\AnacondaProgramfile\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\AnacondaProgramfile\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "D:\AnacondaProgramfile\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\pyarrow\pandas_compat.py", line 639, in convert_column
+    raise e
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\pyarrow\pandas_compat.py", line 633, in convert_column
+    result = pa.array(col, type=type_, from_pandas=True, safe=safe)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pyarrow/array.pxi", line 390, in pyarrow.lib.array
+  File "pyarrow/array.pxi", line 91, in pyarrow.lib._ndarray_to_array
+  File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+pyarrow.lib.ArrowTypeError: ("Expected bytes, got a 'int' object", 'Conversion failed for column REMARKS with type object')
+
+2026-07-20 22:37:31 | ERROR    | kesco_platform | incident_id=b9f7f17b | component=app.process_uploaded_file | exception_type=UnboundLocalError | message=cannot access local variable 'df_working' where it is not associated with a value | context={'filename': "KESCO RE-OPEN DATA 19-JUN'26.xlsx", 'workspace_name': 'Default Workspace'}
+Traceback (most recent call last):
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 850, in process_uploaded_file
+    raw_df, ingestion_warnings, parquet_path = _load_uploaded_file(file_bytes, filename, fingerprint)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\caching\cache_utils.py", line 281, in __call__
+    return self._get_or_create_cached_value(args, kwargs, spinner_message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\caching\cache_utils.py", line 326, in _get_or_create_cached_value
+    return self._handle_cache_miss(cache, value_key, func_args, func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\.venv\Lib\site-packages\streamlit\runtime\caching\cache_utils.py", line 385, in _handle_cache_miss
+    computed_value = self._info.func(*func_args, **func_kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 435, in _load_uploaded_file
+    conversion = convert_upload_to_parquet(file_bytes, filename, fingerprint)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\KESCO_ANALYTICS_PLATFORM\FRONTEND\app.py", line 349, in convert_upload_to_parquet
+    if df_working is not None:
+       ^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'df_working' where it is not associated with a value
+
