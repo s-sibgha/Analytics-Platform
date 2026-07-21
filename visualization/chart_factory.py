@@ -293,7 +293,17 @@ def _apply_date_range(
     # a tz mismatch here previously disabled every chart on the dashboard
     # with a generic "Render error" the instant a date filter was applied
     # against a tz-aware column.
-    dt = pd.to_datetime(df[date_col], errors="coerce")
+    if pd.api.types.is_datetime64_any_dtype(df[date_col]):
+        dt = df[date_col]
+    else:
+        try:
+            normalized = df[date_col].astype(str).str.strip().str.replace("_", "-", regex=False)
+            try:
+                dt = pd.to_datetime(normalized, errors="coerce", format="mixed")
+            except (ValueError, TypeError):
+                dt = pd.to_datetime(normalized, errors="coerce")
+        except Exception:  # noqa: BLE001
+            dt = pd.to_datetime(df[date_col], errors="coerce")
     dt = _tz_naive_series(dt)
     start = _tz_naive_scalar(start)
     end = _tz_naive_scalar(end)
