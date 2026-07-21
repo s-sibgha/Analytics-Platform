@@ -3,10 +3,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-#root directory (parent of FRONTEND) to Python's search path
 root_dir = Path(__file__).resolve().parent.parent
-if str(root_dir) not in sys.path:
-    sys.path.append(str(root_dir))
+frontend_dir = Path(__file__).resolve().parent
+for _p in (root_dir, frontend_dir):
+    _p_str = str(_p)
+    if _p_str in sys.path:
+        sys.path.remove(_p_str)
+    sys.path.insert(0, _p_str)
 
 
 
