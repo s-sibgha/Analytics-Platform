@@ -365,7 +365,7 @@ def render(**kwargs: Any) -> None:
     on. Never raises.
     """
     try:
-        from app import sync_notifications_with_registry
+        from FRONTEND.app import sync_notifications_with_registry
         sync_notifications_with_registry()
     except Exception:  # noqa: BLE001
         pass
@@ -453,7 +453,7 @@ def render(**kwargs: Any) -> None:
             st.write(f"**Domain:** {domain_label} ({domain_conf:.0%} confidence)")
             st.write(f"**Readiness:** {st.session_state.get('readiness_score', 0)}/100")
             if st.button("Clear Active Dataset", key="_sidebar_clear_dataset_btn", width="stretch"):
-                from app import _clear_active_dataset
+                from FRONTEND.app import _clear_active_dataset
                 _clear_active_dataset()
                 st.rerun()
 
