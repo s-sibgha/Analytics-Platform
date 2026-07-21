@@ -232,18 +232,114 @@ class _BytesUploadShim:
     def getvalue(self) -> bytes:
         return self._data
 
+# def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str) -> Dict[str, Any]:
+#     """
+#     Converts raw uploaded bytes to a compressed Parquet file on disk, keyed
+#     by content fingerprint. Every read/sanitize/write step below is wrapped
+#     in its own isolated try/except so a failure at any single stage is
+#     caught, logged, and surfaced as a structured `{"error": ...}` result —
+#     never as an unhandled exception, and never with a local variable left
+#     unbound for a later `finally`/cleanup step to trip over. Never raises.
+#     """
+#     suffix = Path(filename).suffix.lower().lstrip(".")
+#     # Defensive re-creation — /tmp on Streamlit Cloud is ephemeral and can
+#     # be reclaimed mid-session; import-time mkdir() alone is not durable.
+#     _PARQUET_TEMP_DIR.mkdir(parents=True, exist_ok=True)
+#     parquet_path = str(_PARQUET_TEMP_DIR / f"{fingerprint}.parquet")
+
+#     if os.path.exists(parquet_path):
+#         try:
+#             meta = pq.read_metadata(parquet_path)
+#             return {
+#                 "parquet_path": parquet_path,
+#                 "row_count": meta.num_rows,
+#                 "column_names": [f.name for f in pq.read_schema(parquet_path)],
+#                 "warnings": [],
+#             }
+#         except Exception:  # noqa: BLE001 — corrupted/partial cache hit, fall through and reconvert
+#             pass
+
+#     warnings: List[str] = []
+#     tmp_source_path: Optional[str] = None
+#     # CRITICAL: initialized unconditionally, before any branch or try block,
+#     # so a `finally`/cleanup reference below can NEVER raise UnboundLocalError
+#     # regardless of which branch executes or where an exception originates.
+#     df_working: Optional[pd.DataFrame] = None
+
+#     if suffix not in ("csv", "xlsx", "xls"):
+#         return {
+#             "error": f"Unsupported file extension '.{suffix}'. "
+#                      f"Supported types: {', '.join(SUPPORTED_UPLOAD_TYPES)}."
+#         }
+
+#     try:
+#         if suffix == "csv":
+#             # DuckDB's native CSV -> Parquet pushdown remains the fastest,
+#             # lowest-RAM path for well-formed CSVs (zero pandas
+#             # materialization). Tried FIRST; only the fallback branch
+#             # (irregular/ragged CSVs DuckDB's sniffer rejects) routes
+#             # through the mixed-type-safe pandas pipeline.
+#             tmp_fd, tmp_source_path = tempfile.mkstemp(suffix=".csv", dir=str(_PARQUET_TEMP_DIR))
+#             with os.fdopen(tmp_fd, "wb") as fh:
+#                 fh.write(file_bytes)
+
+#             con = duckdb.connect(database=":memory:")
+#             try:
+#                 con.execute(
+#                     "COPY (SELECT * FROM read_csv_auto(?, HEADER=TRUE, UNION_BY_NAME=TRUE, "
+#                     "IGNORE_ERRORS=TRUE)) TO ? (FORMAT PARQUET, COMPRESSION 'ZSTD', "
+#                     "ROW_GROUP_SIZE 128000)",
+#                     [tmp_source_path, parquet_path],
+#                 )
+#             except Exception as duckdb_exc:  # noqa: BLE001
+#                 log_exception(
+#                     "app.convert_upload_to_parquet.duckdb_csv", duckdb_exc,
+#                     context={"filename": filename},
+#                 )
+#                 warnings.append("CSV required a fallback parser (irregular formatting detected).")
+
+#                 # ── Isolated read step ──────────────────────────────────
+#                 try:
+#                     df_working = read_uploaded_file(uploaded_file=_BytesUploadShim(file_bytes, filename))
+#                 except Exception as read_exc:  # noqa: BLE001
+#                     log_exception(
+#                         "app.convert_upload_to_parquet.csv_fallback_read", read_exc,
+#                         context={"filename": filename},
+#                     )
+#                     return {"error": f"Failed to parse CSV '{filename}' after fallback: {read_exc}"}
+
+#                 # ── Isolated sanitize step (explicit, per requirement) ──
+#                 try:
+#                     df_working = sanitize_for_parquet(df_working)
+#                 except Exception as sanitize_exc:  # noqa: BLE001
+#                     log_exception(
+#                         "app.convert_upload_to_parquet.csv_fallback_sanitize", sanitize_exc,
+#                         context={"filename": filename},
+#                     )
+#                     warnings.append(
+#                         "Data sanitization encountered an issue; proceeding with best-effort cleanup."
+#                     )
+
+#                 # ── Isolated write step (sanitize already applied above,
+#                 # so skip the redundant internal sanitize pass) ─────────
+#                 try:
+#                     write_result = write_parquet_safely(
+#                         df_working, parquet_path,
+#                         compression="zstd", row_group_size=128_000, use_dictionary=True,
+#                         sanitize=False,
+#                     )
+#                     if write_result["engine_used"] == "fastparquet":
+#                         warnings.append("Parquet write used the fastparquet fallback engine.")
+#                 except Exception as write_exc:  # noqa: BLE001
+#                     log_exception(
+#                         "app.convert_upload_to_parquet.csv_fallback_write", write_exc,
+#                         context={"filename": filename},
+#                     )
+#                     return {"error": f"Failed to write Parquet for '{filename}': {write_exc}"}
+#             finally:
+#                 con.close()
 def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str) -> Dict[str, Any]:
-    """
-    Converts raw uploaded bytes to a compressed Parquet file on disk, keyed
-    by content fingerprint. Every read/sanitize/write step below is wrapped
-    in its own isolated try/except so a failure at any single stage is
-    caught, logged, and surfaced as a structured `{"error": ...}` result —
-    never as an unhandled exception, and never with a local variable left
-    unbound for a later `finally`/cleanup step to trip over. Never raises.
-    """
     suffix = Path(filename).suffix.lower().lstrip(".")
-    # Defensive re-creation — /tmp on Streamlit Cloud is ephemeral and can
-    # be reclaimed mid-session; import-time mkdir() alone is not durable.
     _PARQUET_TEMP_DIR.mkdir(parents=True, exist_ok=True)
     parquet_path = str(_PARQUET_TEMP_DIR / f"{fingerprint}.parquet")
 
@@ -256,14 +352,11 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
                 "column_names": [f.name for f in pq.read_schema(parquet_path)],
                 "warnings": [],
             }
-        except Exception:  # noqa: BLE001 — corrupted/partial cache hit, fall through and reconvert
+        except Exception:  # noqa: BLE001
             pass
 
     warnings: List[str] = []
     tmp_source_path: Optional[str] = None
-    # CRITICAL: initialized unconditionally, before any branch or try block,
-    # so a `finally`/cleanup reference below can NEVER raise UnboundLocalError
-    # regardless of which branch executes or where an exception originates.
     df_working: Optional[pd.DataFrame] = None
 
     if suffix not in ("csv", "xlsx", "xls"):
@@ -274,22 +367,18 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
 
     try:
         if suffix == "csv":
-            # DuckDB's native CSV -> Parquet pushdown remains the fastest,
-            # lowest-RAM path for well-formed CSVs (zero pandas
-            # materialization). Tried FIRST; only the fallback branch
-            # (irregular/ragged CSVs DuckDB's sniffer rejects) routes
-            # through the mixed-type-safe pandas pipeline.
             tmp_fd, tmp_source_path = tempfile.mkstemp(suffix=".csv", dir=str(_PARQUET_TEMP_DIR))
             with os.fdopen(tmp_fd, "wb") as fh:
                 fh.write(file_bytes)
 
             con = duckdb.connect(database=":memory:")
             try:
+                # FIX: Place 'parquet_path' directly into SQL query string rather than binding via '?'
                 con.execute(
-                    "COPY (SELECT * FROM read_csv_auto(?, HEADER=TRUE, UNION_BY_NAME=TRUE, "
-                    "IGNORE_ERRORS=TRUE)) TO ? (FORMAT PARQUET, COMPRESSION 'ZSTD', "
-                    "ROW_GROUP_SIZE 128000)",
-                    [tmp_source_path, parquet_path],
+                    f"COPY (SELECT * FROM read_csv_auto(?, HEADER=TRUE, UNION_BY_NAME=TRUE, "
+                    f"IGNORE_ERRORS=TRUE)) TO '{parquet_path}' (FORMAT PARQUET, COMPRESSION 'ZSTD', "
+                    f"ROW_GROUP_SIZE 128000)",
+                    [tmp_source_path],
                 )
             except Exception as duckdb_exc:  # noqa: BLE001
                 log_exception(
@@ -298,7 +387,6 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
                 )
                 warnings.append("CSV required a fallback parser (irregular formatting detected).")
 
-                # ── Isolated read step ──────────────────────────────────
                 try:
                     df_working = read_uploaded_file(uploaded_file=_BytesUploadShim(file_bytes, filename))
                 except Exception as read_exc:  # noqa: BLE001
@@ -308,7 +396,6 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
                     )
                     return {"error": f"Failed to parse CSV '{filename}' after fallback: {read_exc}"}
 
-                # ── Isolated sanitize step (explicit, per requirement) ──
                 try:
                     df_working = sanitize_for_parquet(df_working)
                 except Exception as sanitize_exc:  # noqa: BLE001
@@ -320,15 +407,13 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
                         "Data sanitization encountered an issue; proceeding with best-effort cleanup."
                     )
 
-                # ── Isolated write step (sanitize already applied above,
-                # so skip the redundant internal sanitize pass) ─────────
                 try:
                     write_result = write_parquet_safely(
                         df_working, parquet_path,
                         compression="zstd", row_group_size=128_000, use_dictionary=True,
                         sanitize=False,
                     )
-                    if write_result["engine_used"] == "fastparquet":
+                    if write_result.get("engine_used") == "fastparquet":
                         warnings.append("Parquet write used the fastparquet fallback engine.")
                 except Exception as write_exc:  # noqa: BLE001
                     log_exception(
@@ -339,6 +424,13 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
             finally:
                 con.close()
 
+    finally:
+        # Guarantee tmp_source_path cleanup regardless of success or exception
+        if tmp_source_path and os.path.exists(tmp_source_path):
+            try:
+                os.remove(tmp_source_path)
+            except OSError:
+                pass
         elif suffix in ("xlsx", "xls"):
             # ── Isolated read step ───────────────────────────────────────
             try:
