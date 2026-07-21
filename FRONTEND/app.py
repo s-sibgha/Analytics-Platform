@@ -241,7 +241,7 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
     never as an unhandled exception, and never with a local variable left
     unbound for a later `finally`/cleanup step to trip over. Never raises.
     """
-   suffix = Path(filename).suffix.lower().lstrip(".")
+    suffix = Path(filename).suffix.lower().lstrip(".")
     # Defensive re-creation — /tmp on Streamlit Cloud is ephemeral and can
     # be reclaimed mid-session; import-time mkdir() alone is not durable.
     _PARQUET_TEMP_DIR.mkdir(parents=True, exist_ok=True)
