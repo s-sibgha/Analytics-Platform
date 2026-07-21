@@ -379,23 +379,12 @@ def render(**kwargs: Any) -> None:
         with col2:
             from pathlib import Path
 
-# Get the directory of sidebar.py (which is FRONTEND/components)
-            component_dir = Path(__file__).resolve().parent
-            logo_path = component_dir / "LOGO_KESCO.jpg"
+# Build relative path to the image in the same directory
+            logo_path = Path(__file__).resolve().parent / "LOGO_KESCO.jpg"
 
-# Render the image safely using dynamic pathing
-            if logo_path.is_file():
-    # If you want it clickable as a link, wrap it in Markdown HTML:
-                st.markdown(
-            f'<a href="https://kesco.org.in" target="_blank">'
-            f'<img src="data:image/jpeg;base64,{st.image}" style="width:100%">'
-            f'</a>',
-            unsafe_allow_html=True
-        )
+            st.image(str(logo_path), width="stretch", link= "https://kesco.org.in")
     # OR simply use standard Streamlit image rendering:
     # st.image(str(logo_path), use_container_width=True)
-            else:
-                st.error(f"Logo image missing at: {logo_path}")
             
             # st.image("D:/KESCO_ANALYTICS_PLATFORM/FRONTEND/components/LOGO_KESCO.jpg",width = "stretch", link= "https://kesco.org.in")
                
