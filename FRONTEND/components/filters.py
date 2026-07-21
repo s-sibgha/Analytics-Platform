@@ -213,17 +213,42 @@ def _available_standard_filters(
 # INTERNAL HELPERS — MASK CONSTRUCTION (VECTORIZED, NON-MUTATING)
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _robust_parse_dates(series: pd.Series) -> pd.Series:
+    """
+    Cloud-hardened, multi-year, multi-format date parser.
+
+    - Bypasses re-parsing entirely for columns that already arrived as
+      native datetime64 (e.g. a Parquet-origin column) — avoids the
+      pandas 'Could not infer format' UserWarning and unnecessary work.
+    - Normalizes non-standard delimiters (e.g. '02_DEC_2024' ->
+      '02-DEC-2024') before parsing, since dateutil does not recognize
+      underscores as date separators and would otherwise coerce these
+      to NaT even under format='mixed'.
+    - Uses format='mixed' so a single column may legally contain several
+      distinct formats simultaneously (e.g. '2023-01-01' alongside
+      '07-JUNE-2026'), which pandas >= 2.0 otherwise rejects with
+      "time data ... doesn't match format" unless format='mixed' is set.
+
+    Never raises: any unparseable value degrades to NaT via
+    errors='coerce'.
+    """
+    if pd.api.types.is_datetime64_any_dtype(series):
+        return series
+    try:
+        normalized = series.astype(str).str.strip().str.replace("_", "-", regex=False)
+        try:
+            return pd.to_datetime(normalized, errors="coerce", format="mixed")
+        except (ValueError, TypeError):
+            return pd.to_datetime(normalized, errors="coerce")
+    except Exception:  # noqa: BLE001
+        return pd.to_datetime(series, errors="coerce")
+
+
 def _apply_date_filter_mask(
     df: pd.DataFrame,
     date_col: Optional[str],
     date_range: Optional[Tuple[Optional[date], Optional[date]]],
 ) -> pd.Series:
-    """Builds a boolean keep-mask for a date range filter. Returns an
-    all-True mask (never raises) when no date column is resolvable or no
-    range has been selected. `start`/`end` come from st.date_input and are
-    always naive datetime.date objects — the only tz-normalization needed
-    is on the dataframe column side, which may be tz-aware if it originated
-    from a Parquet/Arrow source."""
     mask = pd.Series(True, index=df.index)
     if not date_col or date_col not in df.columns or not date_range:
         return mask
@@ -231,7 +256,7 @@ def _apply_date_filter_mask(
     if start is None and end is None:
         return mask
     try:
-        parsed = pd.to_datetime(df[date_col], errors="coerce")
+        parsed = _robust_parse_dates(df[date_col])
         if getattr(parsed.dt, "tz", None) is not None:
             parsed = parsed.dt.tz_localize(None)
         if start is not None:
@@ -242,7 +267,6 @@ def _apply_date_filter_mask(
         return mask
     except Exception:  # noqa: BLE001
         return pd.Series(True, index=df.index)
-
 
 def _apply_categorical_filter_mask(
     df: pd.DataFrame,
@@ -793,7 +817,7 @@ def render(**kwargs: Any) -> None:
                 date_col = _resolve_role_column(registry, df, ROLE_REGISTRATION_DATE)
                 if date_col:
                     st.markdown("**Date Range**")
-                    parsed_dates = pd.to_datetime(df[date_col], errors="coerce").dropna()
+                    parsed_dates = _robust_parse_dates(df[date_col]).dropna()
                     if not parsed_dates.empty:
                         min_date = parsed_dates.min().date()
                         max_date = parsed_dates.max().date()
