@@ -79,9 +79,9 @@ from engine.domain_detection import detect_domain, DOMAIN_UNKNOWN
 from utils.audit_log import AuditLog
 
 try:
-     from FRONTEND.components.sidebar import render as render_sidebar
+    from FRONTEND.components.sidebar import render as render_sidebar
 except ImportError:
-     render_sidebar = None
+    render_sidebar = None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
