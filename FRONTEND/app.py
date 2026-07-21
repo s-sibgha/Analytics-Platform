@@ -1061,6 +1061,11 @@ def process_uploaded_file(
         st.session_state["visualization_cache"] = {}
         st.session_state["drill_breadcrumbs"] = []
         st.session_state["active_tab"] = "landing"
+        # Prevent stale, unapplied Schema Mapping Studio selections — staged
+        # against the PREVIOUS dataset's column headers — from silently
+        # persisting into the newly ingested dataset's rerun.
+        st.session_state["_schema_pending_mappings"] = {}
+        st.session_state["_schema_mapping_pending_warnings"] = []
 
         result["status"] = "success"
         result["rows"] = int(len(raw_df))
