@@ -286,17 +286,11 @@ def convert_upload_to_parquet(file_bytes: bytes, filename: str, fingerprint: str
             con = duckdb.connect(database=":memory:")
             try:
                 con.execute(
-                    f"COPY (SELECT * FROM read_csv_auto(?, HEADER=TRUE, UNION_BY_NAME=TRUE, "
-                    f"IGNORE_ERRORS=TRUE)) TO '{parquet_path}' (FORMAT PARQUET, COMPRESSION 'ZSTD', "  # ✅ FIXED: f-string interpolation
-                    f"ROW_GROUP_SIZE 128000)",
-                    [tmp_source_path],  # ✅ FIXED: Passing only one parameter for read_csv_auto
+                    "COPY (SELECT * FROM read_csv_auto(?, HEADER=TRUE, UNION_BY_NAME=TRUE, "
+                    "IGNORE_ERRORS=TRUE)) TO ? (FORMAT PARQUET, COMPRESSION 'ZSTD', "
+                    "ROW_GROUP_SIZE 128000)",
+                    [tmp_source_path, parquet_path],
                 )
-                # con.execute(
-                #     "COPY (SELECT * FROM read_csv_auto(?, HEADER=TRUE, UNION_BY_NAME=TRUE, "
-                #     "IGNORE_ERRORS=TRUE)) TO ? (FORMAT PARQUET, COMPRESSION 'ZSTD', "
-                #     "ROW_GROUP_SIZE 128000)",
-                #     [tmp_source_path, parquet_path],
-                # )
             except Exception as duckdb_exc:  # noqa: BLE001
                 log_exception(
                     "app.convert_upload_to_parquet.duckdb_csv", duckdb_exc,
