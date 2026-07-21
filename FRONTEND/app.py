@@ -1,35 +1,5 @@
 from __future__ import annotations
-"""
-app.py — KESCO Universal Utility Analytics Platform
-Main System Bootstrapper & Routing Mesh (FILE 1 / 6)
 
-Milestone 11 / Sidebar-Duplication & Presentation-Mode-Removal remediation:
-  • Presentation Mode has been removed in its entirety: the session-state
-    key, the hidden Alt+P toggle button/handler, and the sidebar-visibility
-    guard that depended on it. The platform now relies exclusively on
-    Streamlit's native sidebar collapse control (the built-in "<<"/">>"
-    affordance) and browser zoom.
-  • SIDEBAR DUPLICATION FIX: `st.navigation(_nav_pages, position="sidebar")`
-    made Streamlit render its OWN native multipage navigation block at the
-    very top of the sidebar, in addition to the manual `st.page_link()`
-    "Pages" section already rendered by `FRONTEND.components.sidebar`
-    further down. That was the second, spurious nav list the user was
-    seeing. Restored to `position="hidden"` so the manual "Pages" section
-    in sidebar.py is the single, authoritative place pages are listed.
-  • Theme sync now additionally calls `core.themes.apply_theme_now()`
-    every rerun — the deterministic, components.html-based mechanism that
-    replaces reliance on st.markdown-injected (non-executing) <script>
-    tags. See core/themes.py's module docstring for the full root-cause
-    analysis.
-
-This module owns:
-  • Global st.session_state contract initialization (idempotent across reruns)
-  • The Ingestion -> Type Inference -> Registry Bootstrap -> Domain Detection ->
-    Safe Cleaning pipeline orchestration
-  • Analytics Readiness Score and Data Quality Score calculators
-  • Notification Center payload builder
-  • The routing mesh (st.navigation, position="hidden")
-"""
 import sys
 from pathlib import Path
 
