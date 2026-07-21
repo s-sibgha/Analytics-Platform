@@ -162,7 +162,7 @@ def _activate_staged_file(filename: str, workspace_name: str) -> Dict[str, Any]:
             "warnings": [],
         }
 
-    from app import process_uploaded_file  # local import: breaks circular import
+    from FRONTEND.app import process_uploaded_file  # local import: breaks circular import
 
     store: Dict[str, bytes] = st.session_state.get("uploaded_files_store", {})
     file_bytes = store.get(filename)
