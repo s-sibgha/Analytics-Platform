@@ -379,17 +379,20 @@ def render(**kwargs: Any) -> None:
 
     from core.themes import render_sidebar_section_header  # local import 
 
+    from pathlib import Path
+    import streamlit as st
+
     with st.sidebar:
         col1, col2, col3 = st.columns([1, 4, 1])
         with col2:
-            try:
-            # Use relative path so it works in Streamlit Cloud / Docker / Windows
-                _sidebar_dir = Path(__file__).resolve().parent
-                logo_path = _sidebar_dir / "LOGO_KESCO.jpg"
-                st.image(str(logo_path), use_container_width=True, link="https://kesco.org.in")
-            except Exception:
-            # Fallback if image file is missing
-                st.warning("Logo could not be loaded.")
+        # Resolves directly to the directory containing sidebar.py (FRONTEND/components)
+            _sidebar_dir = Path(__file__).resolve().parent
+            logo_path = _sidebar_dir / "LOGO_KESCO.jpg"
+
+            if logo_path.exists():
+                st.image(str(logo_path), width="stretch", link="https://kesco.org.in")
+            else:
+                st.warning(f"Logo file not found at {logo_path.name}")
     #Global Brand Mark)
         # col1, col2, col3 = st.columns([1, 4, 1])
         # with col2:
