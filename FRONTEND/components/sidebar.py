@@ -380,31 +380,34 @@ def render(**kwargs: Any) -> None:
     from core.themes import render_sidebar_section_header  # local import to avoid circular churn
 
     with st.sidebar:
-    # 1. Official Company Logo (Global Brand Mark)
-        col1, col2, col3 = st.columns([1, 4, 1])
+        col1, col2, col3 = st.columns([1, 4, 1]) 
         with col2:
-            try:
-                _sidebar_dir = Path(__file__).resolve().parent
-                logo_path = _sidebar_dir / "LOGO_KESCO.jpg"
+            st.image("D:/KESCO_ANALYTICS_PLATFORM/FRONTEND/components/LOGO_KESCO.jpg",width = "stretch", link= "https://kesco.org.in")
+    # 1. Official Company Logo (Global Brand Mark)
+        # col1, col2, col3 = st.columns([1, 4, 1])
+        # with col2:
+        #     try:
+        #         _sidebar_dir = Path(__file__).resolve().parent
+        #         logo_path = _sidebar_dir / "LOGO_KESCO.jpg"
             
-                if not logo_path.exists():
-                    # Linux (Streamlit Cloud) is case-sensitive — fall back
-                    # to a case-insensitive scan so a dev-machine-only
-                    # casing mismatch never crashes the sidebar in prod.
-                    _match = next(
-                        (p for p in _sidebar_dir.glob("*")
-                         if p.is_file() and p.name.lower() == "logo_kesco.jpg"),
-                        None,
-                    )
-                    logo_path = _match if _match is not None else logo_path
+        #         if not logo_path.exists():
+        #             # Linux (Streamlit Cloud) is case-sensitive — fall back
+        #             # to a case-insensitive scan so a dev-machine-only
+        #             # casing mismatch never crashes the sidebar in prod.
+        #             _match = next(
+        #                 (p for p in _sidebar_dir.glob("*")
+        #                  if p.is_file() and p.name.lower() == "logo_kesco.jpg"),
+        #                 None,
+        #             )
+        #             logo_path = _match if _match is not None else logo_path
 
-                if logo_path.exists():
-                    st.image(str(logo_path), width="stretch", link="https://kesco.org.in")
-                else:
-                    st.caption("KESCO")
-            except Exception as exc:  # noqa: BLE001
-                log_exception("sidebar.render.logo_image", exc, severity="info")
-                st.caption("KESCO")
+        #         if logo_path.exists():
+        #             st.image(str(logo_path), width="stretch", link="https://kesco.org.in")
+        #         else:
+        #             st.caption("KESCO")
+        #     except Exception as exc:  # noqa: BLE001
+        #         log_exception("sidebar.render.logo_image", exc, severity="info")
+        #         st.caption("KESCO")
     # OR simply use standard Streamlit image rendering:
     # st.image(str(logo_path), use_container_width=True)
             
