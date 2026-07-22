@@ -383,7 +383,7 @@ def render(**kwargs: Any) -> None:
         col1, col2, col3 = st.columns([1, 4, 1])
         with col2:
               st.image("D:/KESCO_ANALYTICS_PLATFORM/FRONTEND/components/LOGO_KESCO.jpg",width = "stretch", link= "https://kesco.org.in")
-            try:
+             try:
                  _sidebar_dir = Path(__file__).resolve().parent
                  logo_path = _sidebar_dir / "LOGO_KESCO.jpg"
                  st.image("D:/KESCO_ANALYTICS_PLATFORM/FRONTEND/components/LOGO_KESCO.jpg",width = "stretch", link= "https://kesco.org.in")
