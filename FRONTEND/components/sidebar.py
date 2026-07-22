@@ -380,9 +380,12 @@ def render(**kwargs: Any) -> None:
     from core.themes import render_sidebar_section_header  # local import to avoid circular churn
 
     with st.sidebar:
-        col1, col2, col3 = st.columns([1, 4, 1]) 
+        col1, col2, col3 = st.columns([1, 4, 1])
         with col2:
-            st.image("D:/KESCO_ANALYTICS_PLATFORM/FRONTEND/components/LOGO_KESCO.jpg",width = "stretch", link= "https://kesco.org.in")
+            try:
+                _sidebar_dir = Path(__file__).resolve().parent
+                logo_path = _sidebar_dir / "LOGO_KESCO.jpg"
+                st.image("D:/KESCO_ANALYTICS_PLATFORM/FRONTEND/components/LOGO_KESCO.jpg",width = "stretch", link= "https://kesco.org.in")
     # 1. Official Company Logo (Global Brand Mark)
         # col1, col2, col3 = st.columns([1, 4, 1])
         # with col2:
